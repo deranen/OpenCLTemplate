@@ -12,7 +12,7 @@ GCCFLAGS = -g -m64 -Wall -O3
 GCCINCLUDES = -I$(PROJ_INC) \
               -I$(OPENCL_INC)
 
-GCCLIBS = -lOpenCL
+GCCLIBS = -lOpenCL -lboost_program_options
 
 CPPSOURCES := $(wildcard $(PROJ_SRC)/*.cpp) $(wildcard ./*.cpp)
 CPPHEADERS := $(wildcard $(PROJ_INC)/*.h) $(wildcard ./*.h)

@@ -151,7 +151,10 @@ std::string CLHelper::deviceTypeToString(cl_device_type type) {
 		return "ACCELERATOR";
 	case CL_DEVICE_TYPE_ALL:
 		return "ALL";
-	default: { std::cerr << "Invalid device type provided."; exit(1); }
+	default: {
+		std::cerr << "Invalid device type provided: " << type;
+		exit(1);
+	}
 	}
 }
 
@@ -167,6 +170,7 @@ cl_device_type CLHelper::deviceStringToType(std::string deviceString) {
 	else if(deviceString.find("ALL") != std::string::npos)
 		return CL_DEVICE_TYPE_ALL;
 	else {
-		std::cerr << "Invalid device string provided."; exit(1);
+		std::cerr << "Invalid device string provided: " << deviceString;
+		exit(1);
 	}
 }

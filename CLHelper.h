@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _CLHELPER_H
+#define _CLHELPER_H
 
 #include <CL/cl.hpp>
 #include <SDKCommon.hpp>
@@ -7,7 +8,7 @@
 class CLHelper
 {
 public:
-static cl_int CLHelper::findSpecifiedDevice(
+static cl_int findSpecifiedDevice(
 	const std::string& defaultVendor,
 	const cl_device_type defaultDeviceType,
 	const cl_int defaultDeviceId,
@@ -25,9 +26,11 @@ static cl_int compileProgram(
 
 static cl_int printAllPlatformsAndDevices();
 
-static void CLHelper::printDeviceInfoList(std::vector<streamsdk::SDKDeviceInfo>& deviceInfoList);
+static void printDeviceInfoList(std::vector<streamsdk::SDKDeviceInfo>& deviceInfoList);
 
-static std::string CLHelper::deviceTypeToString(cl_device_type type);
+static std::string deviceTypeToString(cl_device_type type);
 
-static cl_device_type CLHelper::deviceStringToType(std::string deviceString);
+static cl_device_type deviceStringToType(std::string deviceString);
 };
+
+#endif

@@ -44,11 +44,11 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 	}
 
 // Create input and output Buffer objects using the host pointes
-	cl::Buffer d_dataA(context, CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataA, &err);
+	cl::Buffer d_dataA(context, CL_MEM_READ_ONLY  | CL_MEM_COPY_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataA, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
-	cl::Buffer d_dataB(context, CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataB, &err);
+	cl::Buffer d_dataB(context, CL_MEM_READ_ONLY  | CL_MEM_COPY_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataB, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
-	cl::Buffer d_dataC(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataC, &err);
+	cl::Buffer d_dataC(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataC, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
 
 // Create command queues for all devices and put them into 'commQueueList'
@@ -100,12 +100,14 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 	err = commQueue.enqueueReadBuffer(d_dataC, true, 0, DATA_SIZE*sizeof(DataType), h_dataC, NULL, NULL);
 	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueReadBuffer() failed.");
 
-	std::cout << "Result: " << h_dataC[DATA_SIZE-1] << std::endl;
+//	std::cout << "Result: " << h_dataC[DATA_SIZE-1] << std::endl;
 
 // Free memory
 	delete[] h_dataA;
 	delete[] h_dataB;
 	delete[] h_dataC;
+
+	return CL_SUCCESS;
 }
 
 void CL_CALLBACK contextCallbackFunction(const char* errorinfo, const void* private_info_size, size_t cb, void* user_data)

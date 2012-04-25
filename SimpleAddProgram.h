@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SIMPLEADDPROGRAM_H
+#define _SIMPLEADDPROGRAM_H
 
 #include "CLHelper.h"
 
@@ -6,4 +7,6 @@
 
 typedef float DataType;
 
-cl_int runSimpleAddProgramProgram(std::vector<cl::Device>& deviceList, std::vector<streamsdk::SDKDeviceInfo>& deviceInfoList);
+cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<streamsdk::SDKDeviceInfo>& deviceInfoList);
+
+#endif
