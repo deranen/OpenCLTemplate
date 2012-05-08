@@ -13,7 +13,8 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 
 // Load the .cl file into a string
 	std::string source;
-	CLHelper::loadKernelFileToString("SimpleAddKernel.cl", &source);
+	err = CLHelper::loadKernelFileToString("SimpleAddKernel.cl", &source);
+	CHECK_OPENCL_ERROR(err, "CLHelper::loadKernelFileToString() failed.");
 
 // Add the source code to a Source object using make_pair
 	cl::Program::Sources sources;
@@ -24,7 +25,8 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 	CHECK_OPENCL_ERROR(err, "cl::Program::Program() failed.");
 
 // Compile the program, optionally giving arguments to the compiler
-	CLHelper::compileProgram(program, deviceList, "");
+	err = CLHelper::compileProgram(program, deviceList, "");
+	CHECK_OPENCL_ERROR(err, "CLHelper::compileProgram() failed.");
 
 // Pick out a specific kernel function from the compiled Program object
 	cl::Kernel simpleAddKernel(program, "simpleAddKernel", &err);
@@ -63,7 +65,7 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 // For the rest of the program, pick the first command queue from the list (and ignore the rest of the devices, if any)
 	cl::CommandQueue commQueue = commQueueList.front();
 
-// Use enqueueWriteBuffer to write the data to the buffers (not sure if this is correct, maybe use enqueueMapBuffer?)
+// Use enqueueWriteBuffer to write the data to the buffers
 	err  = commQueue.enqueueWriteBuffer(d_dataA, true, 0, DATA_SIZE*sizeof(DataType), h_dataA, NULL, NULL);
 	err |= commQueue.enqueueWriteBuffer(d_dataB, true, 0, DATA_SIZE*sizeof(DataType), h_dataB, NULL, NULL);
 	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueWriteBuffer() failed.");
@@ -76,11 +78,11 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 
 // Get device information from deviceInfoList
 	streamsdk::SDKDeviceInfo deviceInfo = deviceInfoList.front();
-	size_t workItemsPerWorkGroup = deviceInfo.maxWorkGroupSize;
+	size_t workGroupSize = deviceInfo.maxWorkGroupSize;
 
-// Keep halving workItemsPerWorkgroup until it divides perfectly into DATA_SIZE
-	while((DATA_SIZE % workItemsPerWorkGroup) != 0) {
-		workItemsPerWorkGroup /= 2;
+// Keep halving workGroupSize until it divides perfectly into DATA_SIZE
+	while((DATA_SIZE % workGroupSize) != 0) {
+		workGroupSize /= 2;
 	}
 	
 // Execute the kernel on the command queue
@@ -89,7 +91,7 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 		simpleAddKernel,
 		cl::NullRange,
 		cl::NDRange(DATA_SIZE),
-		cl::NDRange(workItemsPerWorkGroup), NULL, &clEvent);
+		cl::NDRange(workGroupSize), NULL, &clEvent);
 	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueNDRangeKernel() failed.");
 
 // Wait until the kernel returns
