@@ -22,14 +22,12 @@ SET(CMAKE_CXX_FLAGS "-Wall -O3")
 ADD_EXECUTABLE(main
 	CLHelper.cpp
 	CLHelper.h
-	CMakeLists.txt
 	SDKCommandArgs.cpp
 	SDKCommandArgs.hpp
 	SDKCommon.cpp
 	SDKCommon.hpp
 	SDKFile.cpp
 	SDKFile.hpp
-	SimpleAddKernel.cl
 	SimpleAddProgram.cpp
 	SimpleAddProgram.h
 	main.cpp
