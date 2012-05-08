@@ -1,4 +1,8 @@
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 #include "CLHelper.h"
+
+namespace fs = boost::filesystem;
 
 cl_int CLHelper::findSpecifiedDevice(
 	const std::string& defaultVendor,
@@ -67,16 +71,18 @@ cl_int CLHelper::findSpecifiedDevice(
 
 cl_int CLHelper::loadKernelFileToString(std::string relativeFilePath, std::string* source)
 {
-	streamsdk::SDKFile sourceFile;
-	std::string filePath;
-	filePath = streamsdk::getCurrentDir().append("/").append(relativeFilePath);
-	bool opened = sourceFile.open(filePath.c_str());
-	if(!opened) {
+	std::string filePathString = (fs::current_path() / relativeFilePath).string();
+	boost::algorithm::replace_all(filePathString, "\"", "");
+
+	std::ifstream sourceFile(filePathString.c_str(), std::ifstream::in);
+	if(!sourceFile.good()) {
 		std::cerr << std::endl;
-		std::cerr << "Unable to open file \"" << filePath << "\"." << std::endl;
+		std::cerr << "Unable to open file \"" << filePathString << "\"." << std::endl;
 		exit(1);
 	}
-	*source = sourceFile.source();
+
+	*source = std::string((std::istreambuf_iterator<char>(sourceFile)),
+	                       std::istreambuf_iterator<char>());
 
 	return CL_SUCCESS;
 }

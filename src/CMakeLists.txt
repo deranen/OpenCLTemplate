@@ -8,7 +8,7 @@ MESSAGE("  OPENCL_LIBRARIES: ${OPENCL_LIBRARIES}")
 
 SET(Boost_USE_MULTITHREADED ON)
 
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS program_options filesystem system REQUIRED)
 
 MESSAGE("Boost information:") 
 MESSAGE("  Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}") 
@@ -22,8 +22,6 @@ SET(CMAKE_CXX_FLAGS "-Wall -O3")
 ADD_EXECUTABLE(main
 	CLHelper.cpp
 	CLHelper.h
-	SDKCommandArgs.cpp
-	SDKCommandArgs.hpp
 	SDKCommon.cpp
 	SDKCommon.hpp
 	SDKFile.cpp
