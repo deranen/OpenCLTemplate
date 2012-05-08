@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-project(OpenCLTemplate)
+PROJECT(OpenCLTemplate)
 
-add_subdirectory(src)
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
+
+ADD_SUBDIRECTORY(src)

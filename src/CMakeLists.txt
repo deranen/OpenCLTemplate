@@ -1,8 +1,26 @@
-cmake_minimum_required(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-include_directories(. /opt/AMDAPP/include)
+FIND_PACKAGE(OpenCL REQUIRED)
+MESSAGE("OpenCL information:") 
+MESSAGE("  OPENCL_INCLUDE_DIRS: ${OPENCL_INCLUDE_DIRS}") 
+MESSAGE("  OPENCL_LIBRARIES: ${OPENCL_LIBRARIES}")
 
-add_executable(main
+# Boost
+SET(Boost_USE_STATIC_LIBS   ON)
+SET(Boost_USE_MULTITHREADED ON)
+
+FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+
+MESSAGE("Boost information:") 
+MESSAGE("  Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}") 
+MESSAGE("  Boost_LIBRARIES: ${Boost_LIBRARIES}") 
+MESSAGE("  Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
+
+INCLUDE_DIRECTORIES(. ${OPENCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+
+SET(CMAKE_CXX_FLAGS "-Wall -O3")
+
+ADD_EXECUTABLE(main
 	CLHelper.cpp
 	CLHelper.h
 	CMakeLists.txt
@@ -18,9 +36,9 @@ add_executable(main
 	main.cpp
 )
 
-target_link_libraries(main
-	OpenCL
-	boost_program_options
+TARGET_LINK_LIBRARIES(main
+	${OPENCL_LIBRARIES}
+	${Boost_LIBRARIES}
 )
 
-file(COPY SimpleAddKernel.cl DESTINATION ./)
+FILE(COPY SimpleAddKernel.cl DESTINATION ./)
