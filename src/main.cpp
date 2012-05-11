@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
 
 // Find specified devices and store them in 'deviceList' and related device info in 'deviceInfoList'
 	std::vector<cl::Device> deviceList;
-	std::vector<streamsdk::SDKDeviceInfo> deviceInfoList;
-	CLHelper::findSpecifiedDevice(defaultVendor, defaultDeviceType, defaultDeviceId, &deviceList, &deviceInfoList);
+	std::vector<CLHelper::DeviceInfo> deviceInfoList;
+	CLHelper::findSpecifiedDevices(defaultVendor, defaultDeviceType, defaultDeviceId, &deviceList, &deviceInfoList);
 
 // Print selected devices
 	std::cout << std::endl;

@@ -7,6 +7,6 @@
 
 typedef float DataType;
 
-cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<streamsdk::SDKDeviceInfo>& deviceInfoList);
+cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHelper::DeviceInfo>& deviceInfoList);
 
 #endif

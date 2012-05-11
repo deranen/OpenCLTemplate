@@ -2,7 +2,7 @@
 
 void CL_CALLBACK contextCallbackFunction(const char* errorinfo, const void* private_info_size, size_t cb, void* user_data);
 
-cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<streamsdk::SDKDeviceInfo>& deviceInfoList)
+cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHelper::DeviceInfo>& deviceInfoList)
 {
 	cl_int err;
 	streamsdk::SDKCommon timer;
@@ -77,7 +77,7 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<stre
 	CHECK_OPENCL_ERROR(err, "cl::Kernel::setArg() failed.");
 
 // Get device information from deviceInfoList
-	streamsdk::SDKDeviceInfo deviceInfo = deviceInfoList.front();
+	CLHelper::DeviceInfo deviceInfo = deviceInfoList.front();
 	size_t workGroupSize = deviceInfo.maxWorkGroupSize;
 
 // Keep halving workGroupSize until it divides perfectly into DATA_SIZE
