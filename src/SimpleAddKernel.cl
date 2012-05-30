@@ -1,4 +1,4 @@
-#define DATA_SIZE 1024
+#define DATA_SIZE 1048576
 
 typedef float DataType;
 

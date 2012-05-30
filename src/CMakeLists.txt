@@ -17,7 +17,7 @@ MESSAGE("  Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
 
 INCLUDE_DIRECTORIES(. ${OPENCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
-SET(CMAKE_CXX_FLAGS "-Wall -O3")
+SET(CMAKE_CXX_FLAGS "-Wall")
 
 ADD_EXECUTABLE(main
 	CLHelper.cpp
@@ -29,6 +29,8 @@ ADD_EXECUTABLE(main
 	SimpleAddProgram.cpp
 	SimpleAddProgram.h
 	main.cpp
+	
+	SimpleAddKernel.cl
 )
 
 TARGET_LINK_LIBRARIES(main
@@ -36,4 +38,9 @@ TARGET_LINK_LIBRARIES(main
 	${Boost_LIBRARIES}
 )
 
-FILE(COPY SimpleAddKernel.cl DESTINATION ./)
+SET(CMAKE_BUILD_TYPE Release)
+
+ADD_CUSTOM_COMMAND(
+	OUTPUT ${CMAKE_BINARY_DIR}/SimpleAddKernel.cl
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/SimpleAddKernel.cl ${CMAKE_BINARY_DIR}/SimpleAddKernel.cl
+	MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/SimpleAddKernel.cl)
