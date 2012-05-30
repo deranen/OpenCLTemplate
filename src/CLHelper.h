@@ -2,8 +2,17 @@
 #define _CLHELPER_H
 
 #include <CL/cl.hpp>
-#include <SDKCommon.hpp>
+#include <iostream>
 #include <string>
+
+#define CHECK_OPENCL_ERROR(actual, msg) \
+	if(actual != CL_SUCCESS) \
+	{ \
+		std::cout << "Error: "<< msg << " Error code: "; \
+		std::cout << CLHelper::openCLErrorCodeToString(actual) << std::endl; \
+		std::cout << "Location : " << __FILE__ << ":" << __LINE__ << std::endl; \
+		exit(1); \
+	}
 
 namespace CLHelper
 {
@@ -78,37 +87,39 @@ namespace CLHelper
 
 		DeviceInfo& operator=(const DeviceInfo& obj);
 
-		cl_int setDeviceInfo(cl::Device device);
+		void setDeviceInfo(cl::Device device);
 	private:
 		void deleteAll();
 		void assignAll(const DeviceInfo& obj);
 
 	};
 
-	cl_int findSpecifiedDevices(
+	void findSpecifiedDevices(
 		const std::string& defaultVendor,
 		const cl_device_type defaultDeviceType,
 		const cl_int defaultDeviceId,
 		std::vector<cl::Device>* deviceList,
 		std::vector<DeviceInfo>* deviceInfoList);
 
-	cl_int loadKernelFileToString(std::string relativeFilePath, std::string* source);
+	void loadKernelFileToString(std::string relativeFilePath, std::string* source);
 
-	cl_int compileProgram(
+	void compileProgram(
 		cl::Program& program,
 		std::vector<cl::Device>& devices,
 		const char* options = NULL,
 		void (CL_CALLBACK * notifyFptr)(cl_program, void *) = NULL,
 		void* data = NULL);
 
-	cl_int printVendor(cl::Platform platform);
-	cl_int printDevices(cl::Platform platform, cl_device_type deviceType);
-	cl_int printAllPlatformsAndDevices();
+	void printVendor(cl::Platform platform);
+	void printDevices(cl::Platform platform, cl_device_type deviceType);
+	void printAllPlatformsAndDevices();
 
 	void printDeviceInfoList(std::vector<DeviceInfo>& deviceInfoList);
 
 	std::string deviceTypeToString(cl_device_type type);
 	cl_device_type deviceStringToType(std::string deviceString);
+
+	const char* openCLErrorCodeToString(int errorCode);
 };
 
 #endif

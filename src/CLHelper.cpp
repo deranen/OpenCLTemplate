@@ -1,10 +1,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <fstream>
 #include "CLHelper.h"
 
 namespace fs = boost::filesystem;
 
-cl_int CLHelper::findSpecifiedDevices(
+void CLHelper::findSpecifiedDevices(
 	const std::string& defaultVendor,
 	const cl_device_type defaultDeviceType,
 	const cl_int defaultDeviceId,
@@ -65,11 +66,9 @@ cl_int CLHelper::findSpecifiedDevices(
 		std::cerr << "No devices found which match the criteria. Exiting..." << std::endl;
 		exit(1);
 	}
-
-	return CL_SUCCESS;
 }
 
-cl_int CLHelper::loadKernelFileToString(std::string relativeFilePath, std::string* source)
+void CLHelper::loadKernelFileToString(std::string relativeFilePath, std::string* source)
 {
 	std::string filePathString = (fs::current_path() / relativeFilePath).string();
 	boost::algorithm::replace_all(filePathString, "\"", "");
@@ -83,11 +82,9 @@ cl_int CLHelper::loadKernelFileToString(std::string relativeFilePath, std::strin
 
 	*source = std::string((std::istreambuf_iterator<char>(sourceFile)),
 	                       std::istreambuf_iterator<char>());
-
-	return CL_SUCCESS;
 }
 
-cl_int CLHelper::compileProgram(
+void CLHelper::compileProgram(
 	cl::Program& program,
 	std::vector<cl::Device>& devices,
 	const char* options,
@@ -109,11 +106,9 @@ cl_int CLHelper::compileProgram(
 		}
 		CHECK_OPENCL_ERROR(err, "cl::Program::build() failed.");
 	}
-
-	return CL_SUCCESS;
 }
 
-cl_int CLHelper::printAllPlatformsAndDevices()
+void CLHelper::printAllPlatformsAndDevices()
 {
 	cl_int err;
 
@@ -121,26 +116,19 @@ cl_int CLHelper::printAllPlatformsAndDevices()
 	err = cl::Platform::get(&platforms);
 	CHECK_OPENCL_ERROR(err, "cl::Platform::get() failed.");
 
-	streamsdk::SDKCommon sdkCommon;
 	std::cout << std::endl;
 	std::cout << "Listing platform vendors and devices" << std::endl;
 	std::cout << "===========================================" << std::endl;
 
 	std::vector<cl::Platform>::iterator platform;
 	for(platform = platforms.begin(); platform != platforms.end(); platform++) {
-		err = CLHelper::printVendor(*platform);
-		CHECK_OPENCL_ERROR(err, "CLHelper::printVendor() failed.");
-
-		err = CLHelper::printDevices(*platform, CL_DEVICE_TYPE_ALL);
-		CHECK_OPENCL_ERROR(err, "CLHelper::printDevices() failed.");
-
+		CLHelper::printVendor(*platform);
+		CLHelper::printDevices(*platform, CL_DEVICE_TYPE_ALL);
 		std::cout << "===========================================" << std::endl;
 	}
-
-	return CL_SUCCESS;
 }
 
-cl_int CLHelper::printVendor(cl::Platform platform)
+void CLHelper::printVendor(cl::Platform platform)
 {
     cl_int err;
 
@@ -149,11 +137,9 @@ cl_int CLHelper::printVendor(cl::Platform platform)
     CHECK_OPENCL_ERROR(err, "cl::Platform::getInfo() failed.");
 
     std::cout << "Platform Vendor : " << vendorString << std::endl;
-
-    return CL_SUCCESS;
 }
 
-cl_int CLHelper::printDevices(cl::Platform platform, cl_device_type deviceType)
+void CLHelper::printDevices(cl::Platform platform, cl_device_type deviceType)
 {
     cl_int err;
 
@@ -171,8 +157,6 @@ cl_int CLHelper::printDevices(cl::Platform platform, cl_device_type deviceType)
 
         std::cout << "Device " << deviceNum << " : " << deviceName << std::endl;
     }
-
-    return CL_SUCCESS;
 }
 
 void CLHelper::printDeviceInfoList(std::vector<CLHelper::DeviceInfo>& deviceInfoList)
@@ -315,7 +299,7 @@ CLHelper::DeviceInfo& CLHelper::DeviceInfo::operator=(const DeviceInfo& obj)
 	return *this;
 }
 
-cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
+void CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
     cl_int err = CL_SUCCESS;
 
     //Get device type
@@ -357,7 +341,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
     //Get max work item sizes
     delete maxWorkItemSizes;
     maxWorkItemSizes = new size_t[maxWorkItemDims];
-    CHECK_ALLOCATION(maxWorkItemSizes, "Failed to allocate memory(maxWorkItemSizes)");
 
     err = clGetDeviceInfo(
                     device(),
@@ -738,7 +721,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
 
     delete name;
     name = new char[tempSize];
-    CHECK_ALLOCATION(name, "Failed to allocate memory(name)");
 
     err = clGetDeviceInfo(
                     device(),
@@ -759,7 +741,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
 
     delete vendorName;
     vendorName = new char[tempSize];
-    CHECK_ALLOCATION(vendorName, "Failed to allocate memory(venderName)");
 
     err = clGetDeviceInfo(
                     device(),
@@ -780,7 +761,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
 
     delete driverVersion;
     driverVersion = new char[tempSize];
-    CHECK_ALLOCATION(driverVersion, "Failed to allocate memory(driverVersion)");
 
     err = clGetDeviceInfo(
                     device(),
@@ -801,7 +781,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
 
     delete profileType;
     profileType = new char[tempSize];
-    CHECK_ALLOCATION(profileType, "Failed to allocate memory(profileType)");
 
     err = clGetDeviceInfo(
                     device(),
@@ -822,7 +801,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
 
     delete deviceVersion;
     deviceVersion = new char[tempSize];
-    CHECK_ALLOCATION(deviceVersion, "Failed to allocate memory(deviceVersion)");
 
     err = clGetDeviceInfo(
                     device(),
@@ -843,7 +821,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
 
     delete extensions;
     extensions = new char[tempSize];
-    CHECK_ALLOCATION(extensions, "Failed to allocate memory(extensions)");
 
     err = clGetDeviceInfo(
                     device(),
@@ -938,7 +915,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
 
         delete openclCVersion;
         openclCVersion = new char[tempSize];
-        CHECK_ALLOCATION(openclCVersion, "Failed to allocate memory(openclCVersion)");
 
         err = clGetDeviceInfo(
                         device(),
@@ -949,8 +925,6 @@ cl_int CLHelper::DeviceInfo::setDeviceInfo(cl::Device device) {
         CHECK_OPENCL_ERROR(err, "clGetDeviceIDs(CL_DEVICE_OPENCL_C_VERSION) failed");
     }
 #endif
-
-    return SDK_SUCCESS;
 }
 
 void CLHelper::DeviceInfo::deleteAll()
@@ -1047,4 +1021,119 @@ void CLHelper::DeviceInfo::assignAll(const DeviceInfo& obj)
 
 	extensions = new char[strlen(obj.extensions) + 1];
 	strcpy(extensions, obj.extensions);
+}
+
+const char* CLHelper::openCLErrorCodeToString(int errorCode)
+{
+    switch(errorCode)
+    {
+        case CL_DEVICE_NOT_FOUND:
+            return "CL_DEVICE_NOT_FOUND";
+        case CL_DEVICE_NOT_AVAILABLE:
+            return "CL_DEVICE_NOT_AVAILABLE";
+        case CL_COMPILER_NOT_AVAILABLE:
+            return "CL_COMPILER_NOT_AVAILABLE";
+        case CL_MEM_OBJECT_ALLOCATION_FAILURE:
+            return "CL_MEM_OBJECT_ALLOCATION_FAILURE";
+        case CL_OUT_OF_RESOURCES:
+            return "CL_OUT_OF_RESOURCES";
+        case CL_OUT_OF_HOST_MEMORY:
+            return "CL_OUT_OF_HOST_MEMORY";
+        case CL_PROFILING_INFO_NOT_AVAILABLE:
+            return "CL_PROFILING_INFO_NOT_AVAILABLE";
+        case CL_MEM_COPY_OVERLAP:
+            return "CL_MEM_COPY_OVERLAP";
+        case CL_IMAGE_FORMAT_MISMATCH:
+            return "CL_IMAGE_FORMAT_MISMATCH";
+        case CL_IMAGE_FORMAT_NOT_SUPPORTED:
+            return "CL_IMAGE_FORMAT_NOT_SUPPORTED";
+        case CL_BUILD_PROGRAM_FAILURE:
+            return "CL_BUILD_PROGRAM_FAILURE";
+        case CL_MAP_FAILURE:
+            return "CL_MAP_FAILURE";
+        case CL_MISALIGNED_SUB_BUFFER_OFFSET:
+            return "CL_MISALIGNED_SUB_BUFFER_OFFSET";
+        case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST:
+            return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST";
+        case CL_INVALID_VALUE:
+            return "CL_INVALID_VALUE";
+        case CL_INVALID_DEVICE_TYPE:
+            return "CL_INVALID_DEVICE_TYPE";
+        case CL_INVALID_PLATFORM:
+            return "CL_INVALID_PLATFORM";
+        case CL_INVALID_DEVICE:
+            return "CL_INVALID_DEVICE";
+        case CL_INVALID_CONTEXT:
+            return "CL_INVALID_CONTEXT";
+        case CL_INVALID_QUEUE_PROPERTIES:
+            return "CL_INVALID_QUEUE_PROPERTIES";
+        case CL_INVALID_COMMAND_QUEUE:
+            return "CL_INVALID_COMMAND_QUEUE";
+        case CL_INVALID_HOST_PTR:
+            return "CL_INVALID_HOST_PTR";
+        case CL_INVALID_MEM_OBJECT:
+            return "CL_INVALID_MEM_OBJECT";
+        case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR:
+            return "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR";
+        case CL_INVALID_IMAGE_SIZE:
+             return "CL_INVALID_IMAGE_SIZE";
+        case CL_INVALID_SAMPLER:
+            return "CL_INVALID_SAMPLER";
+        case CL_INVALID_BINARY:
+            return "CL_INVALID_BINARY";
+        case CL_INVALID_BUILD_OPTIONS:
+            return "CL_INVALID_BUILD_OPTIONS";
+        case CL_INVALID_PROGRAM:
+            return "CL_INVALID_PROGRAM";
+        case CL_INVALID_PROGRAM_EXECUTABLE:
+            return "CL_INVALID_PROGRAM_EXECUTABLE";
+        case CL_INVALID_KERNEL_NAME:
+            return "CL_INVALID_KERNEL_NAME";
+        case CL_INVALID_KERNEL_DEFINITION:
+            return "CL_INVALID_KERNEL_DEFINITION";
+        case CL_INVALID_KERNEL:
+            return "CL_INVALID_KERNEL";
+        case CL_INVALID_ARG_INDEX:
+            return "CL_INVALID_ARG_INDEX";
+        case CL_INVALID_ARG_VALUE:
+            return "CL_INVALID_ARG_VALUE";
+        case CL_INVALID_ARG_SIZE:
+            return "CL_INVALID_ARG_SIZE";
+        case CL_INVALID_KERNEL_ARGS:
+            return "CL_INVALID_KERNEL_ARGS";
+        case CL_INVALID_WORK_DIMENSION:
+            return "CL_INVALID_WORK_DIMENSION";
+        case CL_INVALID_WORK_GROUP_SIZE:
+            return "CL_INVALID_WORK_GROUP_SIZE";
+        case CL_INVALID_WORK_ITEM_SIZE:
+            return "CL_INVALID_WORK_ITEM_SIZE";
+        case CL_INVALID_GLOBAL_OFFSET:
+            return "CL_INVALID_GLOBAL_OFFSET";
+        case CL_INVALID_EVENT_WAIT_LIST:
+            return "CL_INVALID_EVENT_WAIT_LIST";
+        case CL_INVALID_EVENT:
+            return "CL_INVALID_EVENT";
+        case CL_INVALID_OPERATION:
+            return "CL_INVALID_OPERATION";
+        case CL_INVALID_GL_OBJECT:
+            return "CL_INVALID_GL_OBJECT";
+        case CL_INVALID_BUFFER_SIZE:
+            return "CL_INVALID_BUFFER_SIZE";
+        case CL_INVALID_MIP_LEVEL:
+            return "CL_INVALID_MIP_LEVEL";
+        case CL_INVALID_GLOBAL_WORK_SIZE:
+            return "CL_INVALID_GLOBAL_WORK_SIZE";
+        case CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR:
+            return "CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR";
+        case CL_PLATFORM_NOT_FOUND_KHR:
+            return "CL_PLATFORM_NOT_FOUND_KHR";
+        case CL_DEVICE_PARTITION_FAILED_EXT:
+            return "CL_DEVICE_PARTITION_FAILED_EXT";
+        case CL_INVALID_PARTITION_COUNT_EXT:
+            return "CL_INVALID_PARTITION_COUNT_EXT";
+        default:
+            return "unknown error code";
+    }
+
+    return "unknown error code";
 }

@@ -1,12 +1,8 @@
-#define DATA_SIZE 1048576
-
-typedef float DataType;
-
 __kernel
-void simpleAddKernel(__global DataType* dataA, __global DataType* dataB, __global DataType* dataC)
+void simpleAddKernel(__global float* dataA, __global float* dataB, __global float* dataC, unsigned int dataSize)
 {
-	int threadId = get_global_id(0);
+	unsigned int threadId = get_global_id(0);
 
-	if(threadId < DATA_SIZE)
+	if(threadId < dataSize)
 		dataC[threadId] = dataA[threadId] + dataB[threadId];
 }

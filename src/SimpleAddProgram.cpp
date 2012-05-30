@@ -3,6 +3,10 @@
 
 void CL_CALLBACK contextCallbackFunction(const char* errorinfo, const void* private_info_size, size_t cb, void* user_data);
 
+#define DATA_SIZE 1048576
+
+typedef cl_float DataType;
+
 cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHelper::DeviceInfo>& deviceInfoList)
 {
 	cl_int err;
@@ -14,8 +18,7 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 
 // Load the .cl file into a string
 	std::string source;
-	err = CLHelper::loadKernelFileToString("SimpleAddKernel.cl", &source);
-	CHECK_OPENCL_ERROR(err, "CLHelper::loadKernelFileToString() failed.");
+	CLHelper::loadKernelFileToString("SimpleAddKernel.cl", &source);
 
 // Add the source code to a Source object using make_pair
 	cl::Program::Sources sources;
@@ -26,8 +29,7 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 	CHECK_OPENCL_ERROR(err, "cl::Program::Program() failed.");
 
 // Compile the program, optionally giving arguments to the compiler
-	err = CLHelper::compileProgram(program, deviceList, "");
-	CHECK_OPENCL_ERROR(err, "CLHelper::compileProgram() failed.");
+	CLHelper::compileProgram(program, deviceList, "");
 
 // Pick out a specific kernel function from the compiled Program object
 	cl::Kernel simpleAddKernel(program, "simpleAddKernel", &err);
@@ -58,8 +60,6 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 		h_dataC[i] = (DataType) 0;
 	}
 
-	timer.restart();
-
 // Create input and output Buffer objects using the host pointers
 	cl::Buffer d_dataA(context, CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataA, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
@@ -68,12 +68,11 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 	cl::Buffer d_dataC(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataC, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
 
-	std::cout << "Time to create input buffers (using CL_MEM_COPY_HOST_PTR): " << timer.elapsed() << std::endl;
-
 // Set the kernel arguments
 	err  = simpleAddKernel.setArg(0, d_dataA);
 	err |= simpleAddKernel.setArg(1, d_dataB);
 	err |= simpleAddKernel.setArg(2, d_dataC);
+	err |= simpleAddKernel.setArg(3, DATA_SIZE);
 	CHECK_OPENCL_ERROR(err, "cl::Kernel::setArg() failed.");
 
 // Get device information from deviceInfoList
@@ -85,6 +84,8 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 		workGroupSize /= 2;
 	}
 	
+	timer.restart();
+
 // Execute the kernel on the command queue
 	cl::Event clEvent;
 	err = commQueue.enqueueNDRangeKernel(
@@ -98,12 +99,17 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 	err = clEvent.wait();
 	CHECK_OPENCL_ERROR(err, "cl::Event::wait() failed.");
 
-// Provide a host pointer to the Buffer
+	std::cout << "Time to run kernel: " << timer.elapsed() << std::endl;
+
+// Map a host pointer to the Buffer
 	DataType* result =
 			(DataType*) commQueue.enqueueMapBuffer(d_dataC, true, CL_MAP_READ, 0, DATA_SIZE*sizeof(DataType), NULL, NULL, &err);
 	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueReadBuffer() failed.");
 
 	std::cout << "Result: " << result[DATA_SIZE-1] << std::endl;
+
+// Unmap the host pointer when done
+	commQueue.enqueueUnmapMemObject(d_dataC, result);
 
 // Free memory
 	delete[] h_dataA;
