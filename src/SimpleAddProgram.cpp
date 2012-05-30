@@ -99,12 +99,12 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 	err = clEvent.wait();
 	CHECK_OPENCL_ERROR(err, "cl::Event::wait() failed.");
 
-	std::cout << "Time to run kernel: " << timer.elapsed() << std::endl;
+	std::cout << "Time to run kernel: " << timer.elapsed() << " s" << std::endl;
 
 // Map a host pointer to the Buffer
 	DataType* result =
 			(DataType*) commQueue.enqueueMapBuffer(d_dataC, true, CL_MAP_READ, 0, DATA_SIZE*sizeof(DataType), NULL, NULL, &err);
-	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueReadBuffer() failed.");
+	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueMapBuffer() failed.");
 
 	std::cout << "Result: " << result[DATA_SIZE-1] << std::endl;
 

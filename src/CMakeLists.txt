@@ -22,10 +22,6 @@ SET(CMAKE_CXX_FLAGS "-Wall")
 ADD_EXECUTABLE(main
 	CLHelper.cpp
 	CLHelper.h
-	SDKCommon.cpp
-	SDKCommon.hpp
-	SDKFile.cpp
-	SDKFile.hpp
 	SimpleAddProgram.cpp
 	SimpleAddProgram.h
 	main.cpp
