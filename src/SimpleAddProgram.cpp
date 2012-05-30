@@ -1,11 +1,12 @@
 #include "SimpleAddProgram.h"
+#include <boost/timer.hpp>
 
 void CL_CALLBACK contextCallbackFunction(const char* errorinfo, const void* private_info_size, size_t cb, void* user_data);
 
 cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHelper::DeviceInfo>& deviceInfoList)
 {
 	cl_int err;
-	streamsdk::SDKCommon timer;
+	boost::timer timer;
 
 // Create a Context from the list of devices
 	cl::Context context(deviceList, NULL, &contextCallbackFunction, NULL, &err);
@@ -32,6 +33,18 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 	cl::Kernel simpleAddKernel(program, "simpleAddKernel", &err);
 	CHECK_OPENCL_ERROR(err, "cl::Kernel::Kernel() failed.");
 
+// Create command queues for all devices and put them into 'commQueueList'
+	std::vector<cl::CommandQueue> commQueueList;
+	std::vector<cl::Device>::iterator device;
+	for(device = deviceList.begin(); device != deviceList.end(); device++)
+	{
+		commQueueList.push_back(cl::CommandQueue(context, *device, 0, &err));
+		CHECK_OPENCL_ERROR(err, "cl::CommandQueue::CommandQueue() failed.");
+	}
+
+// For the rest of the program, pick the first command queue from the list (and ignore the rest of the devices, if any)
+	cl::CommandQueue commQueue = commQueueList.front();
+
 // Allocate input and output arrays
 	DataType* h_dataA = new DataType[DATA_SIZE];
 	DataType* h_dataB = new DataType[DATA_SIZE];
@@ -45,30 +58,17 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 		h_dataC[i] = (DataType) 0;
 	}
 
-// Create input and output Buffer objects using the host pointes
-	cl::Buffer d_dataA(context, CL_MEM_READ_ONLY  | CL_MEM_COPY_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataA, &err);
+	timer.restart();
+
+// Create input and output Buffer objects using the host pointers
+	cl::Buffer d_dataA(context, CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataA, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
-	cl::Buffer d_dataB(context, CL_MEM_READ_ONLY  | CL_MEM_COPY_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataB, &err);
+	cl::Buffer d_dataB(context, CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataB, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
-	cl::Buffer d_dataC(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataC, &err);
+	cl::Buffer d_dataC(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, DATA_SIZE*sizeof(DataType), h_dataC, &err);
 	CHECK_OPENCL_ERROR(err, "cl::Buffer::Buffer() failed.");
 
-// Create command queues for all devices and put them into 'commQueueList'
-	std::vector<cl::CommandQueue> commQueueList;
-	std::vector<cl::Device>::iterator device;
-	for(device = deviceList.begin(); device != deviceList.end(); device++)
-	{
-		commQueueList.push_back(cl::CommandQueue(context, *device, 0, &err));
-		CHECK_OPENCL_ERROR(err, "cl::CommandQueue::CommandQueue() failed.");
-	}
-
-// For the rest of the program, pick the first command queue from the list (and ignore the rest of the devices, if any)
-	cl::CommandQueue commQueue = commQueueList.front();
-
-// Use enqueueWriteBuffer to write the data to the buffers
-	err  = commQueue.enqueueWriteBuffer(d_dataA, true, 0, DATA_SIZE*sizeof(DataType), h_dataA, NULL, NULL);
-	err |= commQueue.enqueueWriteBuffer(d_dataB, true, 0, DATA_SIZE*sizeof(DataType), h_dataB, NULL, NULL);
-	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueWriteBuffer() failed.");
+	std::cout << "Time to create input buffers (using CL_MEM_COPY_HOST_PTR): " << timer.elapsed() << std::endl;
 
 // Set the kernel arguments
 	err  = simpleAddKernel.setArg(0, d_dataA);
@@ -96,13 +96,14 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 
 // Wait until the kernel returns
 	err = clEvent.wait();
-	CHECK_OPENCL_ERROR(err, "cl::Event::wait() failed."); 
+	CHECK_OPENCL_ERROR(err, "cl::Event::wait() failed.");
 
-// Read the result from the device into a host pointer
-	err = commQueue.enqueueReadBuffer(d_dataC, true, 0, DATA_SIZE*sizeof(DataType), h_dataC, NULL, NULL);
+// Provide a host pointer to the Buffer
+	DataType* result =
+			(DataType*) commQueue.enqueueMapBuffer(d_dataC, true, CL_MAP_READ, 0, DATA_SIZE*sizeof(DataType), NULL, NULL, &err);
 	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueReadBuffer() failed.");
 
-//	std::cout << "Result: " << h_dataC[DATA_SIZE-1] << std::endl;
+	std::cout << "Result: " << result[DATA_SIZE-1] << std::endl;
 
 // Free memory
 	delete[] h_dataA;
