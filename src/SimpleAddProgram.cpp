@@ -1,4 +1,5 @@
 #include "SimpleAddProgram.h"
+#include "CLVis.h"
 #include <boost/timer.hpp>
 
 void CL_CALLBACK contextCallbackFunction(const char* errorinfo, const void* private_info_size, size_t cb, void* user_data);
@@ -107,6 +108,8 @@ cl_int runSimpleAddProgram(std::vector<cl::Device>& deviceList, std::vector<CLHe
 	CHECK_OPENCL_ERROR(err, "cl::CommandQueue::enqueueMapBuffer() failed.");
 
 	std::cout << "Result: " << result[DATA_SIZE-1] << std::endl;
+
+	runGLUT(0, 0);
 
 // Unmap the host pointer when done
 	commQueue.enqueueUnmapMemObject(d_dataC, result);
